@@ -1,87 +1,134 @@
-AI Günlük Asistanı
-AI Günlük Asistanı Logo
-AI tabanlı bir mobil uygulama olan AI Günlük Asistanı, kullanıcıların günlük duygusal durumlarını analiz ederek kişiselleştirilmiş özetler ve öneriler sunar. React Native ile geliştirilen bu uygulama, duygusal farkındalığı artırmak ve mental sağlığı desteklemek amacıyla tasarlanmıştır.
-Özellikler
+# 🧠 AI Günlük Asistanı
 
-Duygu Analizi: Kullanıcı girişi metinlerini AI ile analiz ederek pozitif, negatif veya nötr duygu durumunu belirler.
-Özet ve Öneri: Her analiz için otomatik özet ve pratik öneriler üretir (örneğin, stres yönetimi ipuçları).
-Tarihçe Yönetimi: Tüm analizleri tarih sırasıyla kaydeder; seçmeli silme ve toplu temizleme desteği.
-Kullanıcı Dostu Arayüz: React Native Paper bileşenleri ile modern, responsive UI.
-Yerel Depolama: AsyncStorage ile verilerin cihazda güvenli saklanması.
-Çevrimdışı Çalışma: Tüm özellikler internet bağlantısı gerektirmez.
+**Modern ve kullanıcı dostu bir React Native uygulaması.**  
+Duygularınızı paylaşın, yapay zeka destekli analiz alın ve ruh halinizi takip edin.
 
-Teknoloji Yığını
+---
 
-Frontend: React Native 0.72+
-UI Kit: React Native Paper
-State Management: React Context API
-Depolama: AsyncStorage
-Geliştirme Araçları: Expo (opsiyonel), Metro Bundler
+## ✨ Özellikler
 
-Kurulum
-Ön Koşullar
+### AI Destekli Duygu Analizi
 
-Node.js (v18+)
-React Native CLI veya Expo CLI
-Android Studio / Xcode (platforma göre)
-Yarn veya npm
+- Metinlerinizi analiz eder ve duygusal durumunuzu belirler
 
-Adımlar
+### 📊 Sentiment Analizi
 
-Projeyi Klonlayın:Bashgit clone https://github.com/kullanici/ai-gunluk-asistani.git
-cd ai-gunluk-asistani
-Bağımlılıkları Yükleyin:Bashnpm install
+- Pozitif, Negatif veya Nötr duygu tespiti
 
+### 💡 Kişiselleştirilmiş Öneriler
+
+- Ruh halinize göre özel tavsiyeler sunar
+
+### 📝 Özet Oluşturma
+
+- Yazılarınızın otomatik özeti
+
+### 🗂️ Geçmiş Kayıtlar
+
+- Tüm analizlerinizi saklayın ve takip edin
+
+### 🔄 Senkronizasyon
+
+- Verileriniz güvenli bir şekilde saklanır
+
+---
+
+## Kullanıcı Arayüzü
+
+- 🌈 Modern ve minimalist tasarım
+- 🎭 Duygu durumuna göre renkli göstergeler
+- 📱 Responsive ve kullanıcı dostu arayüz
+- ⚡ Hızlı ve akıcı performans
+- 🔔 Anlık bildirimler ve geri bildirimler
+
+---
+
+## Kurulum
+
+### Gereksinimler
+
+- Node.js (v14 veya üzeri)
+- npm veya yarn
+- React Native CLI
+- Android Studio (Android için)
+- **Hugging Face API Key** (AI analizleri için)
+
+### Adım 1: Depoyu Klonlayın
+
+```bash
+git clone https://github.com/miracdogann/aiGunlukAsistan.git
+cd AIGunlukAistanim
+
+### Adım 2: Bağımlılıkları Yükleyin
+npm install
 # veya
-
 yarn install
-Ortam Değişkenlerini Ayarlayın (opsiyonel, AI API için):
-.env dosyası oluşturun ve API anahtarlarını ekleyin (örneğin, OpenAI API).
 
-Uygulamayı Çalıştırın:
-Android:Bashnpx react-native run-android
-iOS:Bashnpx react-native run-ios
-Web (Expo ile):Bashexpo start --web
+Adım 3: Cache’i Temizleyin
+npm start -- --reset-cache
 
-Kullanım
+Adım 4: Uygulamayı Çalıştırın
 
-Ana Sayfa: Günlük giriş metninizi yazın ve "Analiz Et" butonuna basın.
-Sonuçlar: Duygu skoru, emoji, özet ve öneriyi görüntüleyin. "Kaydet" ile tarihçeye ekleyin.
-Tarihçe: Kayıtları görüntüleyin, seçin ve silin. Pull-to-refresh ile güncelleyin.
-Boş Durum: Henüz kayıt yoksa, rehberlik metinleri gösterilir.
+Android:
 
-Örnek Kullanım Akışı:
+npx react-native run-android
 
-Giriş: "Bugün iş stresi beni yordu."
-Çıktı: Negatif duygu, "Stres seviyeniz yüksek görünüyor. Derin nefes egzersizi deneyin." önerisi.
 
-Ekran Görüntüleri
+iOS:
 
-Ana SayfaTarihçe EkranıAna SayfaTarihçe
+npx react-native run-ios
+```
 
-Yapı
-textsrc/
-├── components/ # Yeniden kullanılabilir bileşenler
-├── context/ # AppContext (state yönetimi)
-├── screens/ # Ekranlar (Home, History)
-└── services/ # StorageService (AsyncStorage wrapper)
-Katkı
-Katkı için teşekkürler! 😊
+### Kullanılan Teknolojiler
 
-Fork'layın projeyi.
-Yeni branch oluşturun: git checkout -b feature/yeni-ozellik.
-Değişiklikleri commit edin: git commit -m 'Yeni özellik eklendi'.
-Push edin: git push origin feature/yeni-ozellik.
-Pull Request açın.
+React Native - Mobil uygulama framework'ü
 
-Lütfen Contribution Guidelines'ı okuyun.
-Lisans
-Bu proje MIT Lisansı altında lisanslanmıştır. Detaylar için LICENSE dosyasını inceleyin.
-İletişim
-Sorularınız için:
+React Native Paper - Material Design komponentleri
 
-Yazar: Adınız Soyadınız
-GitHub Issues: Issues Sayfası
+React Navigation - Sayfa navigasyonu
 
-Son Güncelleme: 25 Kasım 2025
-Yapım: React Native & xAI Grok ile geliştirildi.
+State Management
+
+React Context API - Global state yönetimi
+
+AsyncStorage - Yerel veri depolama
+
+React Native Safe Area Context - Güvenli alan yönetimi
+
+### Kullanım
+
+1. Duygu Analizi Yapma
+
+Ana sayfada metin kutusuna duygularınızı yazın
+
+En az 10 karakter girin (daha iyi analiz için)
+
+"Analiz Et" butonuna tıklayın
+
+AI asistanınız metninizi analiz edecek ve sonuçları gösterecek:
+
+😊 Pozitif / 😐 Nötr / 😔 Negatif
+
+Özet ve kişiselleştirilmiş öneriler
+
+2. Geçmiş Kayıtları Görüntüleme
+
+Alt menüden "Geçmiş" sekmesine gidin
+
+Tüm analiz sonuçlarınızı listede görün
+
+Kayıtları seçmek için checkbox kullanın
+
+Seçili kayıtları silebilir veya tümünü temizleyebilirsiniz
+
+Listeyi yenilemek için aşağı çekin (pull-to-refresh)
+
+3. Kayıt Yönetimi
+
+Seçili Kayıtları Sil: Checkbox ile seçip "Sil" butonuna tıklayın
+
+Tümünü Sil: Sağ üst köşedeki "Tümünü Sil" butonunu kullanın
+
+Yenileme: Aşağı çekerek listeyi güncelleyin
+
+(ChatGPT ve Claud yapay zeka modellerinden destek alınmıştır. )
