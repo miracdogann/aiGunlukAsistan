@@ -1,34 +1,44 @@
 import React, { useState, useCallback } from 'react';
-import { View, StyleSheet, FlatList, RefreshControl } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  RefreshControl,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import {
   Card,
-  Chip,
   Button,
   ActivityIndicator,
   Text,
   IconButton,
   Divider,
   Checkbox,
+  Surface,
 } from 'react-native-paper';
 import { useApp } from '../context/AppContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-const sentimentColors = {
-  POSITIVE: '#4CAF50',
-  NEGATIVE: '#F44336',
-  NEUTRAL: '#FF9800',
-};
-
-const sentimentEmojis = {
-  POSITIVE: '😊',
-  NEGATIVE: '😔',
-  NEUTRAL: '😐',
-};
-
-const sentimentTexts = {
-  POSITIVE: 'Pozitif',
-  NEGATIVE: 'Negatif',
-  NEUTRAL: 'Nötr',
+const sentimentConfig = {
+  POSITIVE: {
+    color: '#10B981',
+    emoji: '😊',
+    text: 'Pozitif',
+    bg: '#ECFDF5',
+  },
+  NEGATIVE: {
+    color: '#EF4444',
+    emoji: '😔',
+    text: 'Negatif',
+    bg: '#FEF2F2',
+  },
+  NEUTRAL: {
+    color: '#F59E0B',
+    emoji: '😐',
+    text: 'Nötr',
+    bg: '#FFFBEB',
+  },
 };
 
 const HistoryScreen = () => {
@@ -50,17 +60,28 @@ const HistoryScreen = () => {
   };
 
   const handleDeleteSelected = async () => {
-    try {
-      for (const id of selectedIds) {
-        await deleteEntry(id);
-      }
-      setSelectedIds([]);
-      // Silme sonrası listeyi yenile, storage güncellendiği için entries'i tazeleyelim
-      await refreshEntries();
-    } catch (error) {
-      console.error('Seçilen kayıtlar silinirken hata:', error);
-      // Hata durumunda da yenile, ama kullanıcıya toast/alert ekleyebilirsin
-    }
+    Alert.alert(
+      '🗑️ Seçili Kayıtları Sil',
+      `${selectedIds.length} kayıt silinecek. Emin misiniz?`,
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Sil',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              for (const id of selectedIds) {
+                await deleteEntry(id);
+              }
+              setSelectedIds([]);
+              await refreshEntries();
+            } catch (error) {
+              console.error('Seçilen kayıtlar silinirken hata:', error);
+            }
+          },
+        },
+      ],
+    );
   };
 
   const clearSelection = () => {
@@ -68,14 +89,26 @@ const HistoryScreen = () => {
   };
 
   const handleClearAll = async () => {
-    try {
-      await clearEntries();
-      setSelectedIds([]);
-      // Clear sonrası da yenile (güvenlik için)
-      await refreshEntries();
-    } catch (error) {
-      console.error('Tüm kayıtlar silinirken hata:', error);
-    }
+    Alert.alert(
+      '⚠️ Tüm Kayıtları Sil',
+      `${entries.length} kayıt kalıcı olarak silinecek. Bu işlem geri alınamaz!`,
+      [
+        { text: 'İptal', style: 'cancel' },
+        {
+          text: 'Tümünü Sil',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await clearEntries();
+              setSelectedIds([]);
+              await refreshEntries();
+            } catch (error) {
+              console.error('Tüm kayıtlar silinirken hata:', error);
+            }
+          },
+        },
+      ],
+    );
   };
 
   const formatDate = dateString => {
@@ -88,10 +121,14 @@ const HistoryScreen = () => {
       hour: '2-digit',
       minute: '2-digit',
     });
-    if (date.toDateString() === today.toDateString())
+
+    if (date.toDateString() === today.toDateString()) {
       return `Bugün, ${timeStr}`;
-    if (date.toDateString() === yesterday.toDateString())
+    }
+    if (date.toDateString() === yesterday.toDateString()) {
       return `Dün, ${timeStr}`;
+    }
+
     return date.toLocaleDateString('tr-TR', {
       day: 'numeric',
       month: 'long',
@@ -103,69 +140,90 @@ const HistoryScreen = () => {
 
   const renderEntry = ({ item }) => {
     const isSelected = selectedIds.includes(item.id);
+    const config = sentimentConfig[item.sentiment];
+
     return (
       <Card
         style={[
           styles.entryCard,
-          { borderLeftColor: sentimentColors[item.sentiment] },
+          { borderLeftColor: config.color },
           isSelected && styles.selectedCard,
         ]}
       >
         <Card.Content>
+          {/* Header Row */}
           <View style={styles.entryHeader}>
             <Checkbox
               status={isSelected ? 'checked' : 'unchecked'}
               onPress={() => toggleSelect(item.id)}
-              color="#6200ee"
+              color="#8B5CF6"
             />
+
             <View style={styles.dateContainer}>
+              <IconButton
+                icon="clock-time-four-outline"
+                size={16}
+                iconColor="#9CA3AF"
+                style={styles.clockIcon}
+              />
               <Text style={styles.dateText}>{formatDate(item.date)}</Text>
-              <IconButton icon="clock-outline" size={16} iconColor="#6c757d" />
             </View>
-            <Chip
-              style={[
-                styles.chip,
-                { backgroundColor: sentimentColors[item.sentiment] },
-              ]}
-              textStyle={styles.chipText}
-              icon={() => (
-                <Text style={styles.emoji}>
-                  {sentimentEmojis[item.sentiment]}
-                </Text>
-              )}
-              mode="flat"
+
+            <View
+              style={[styles.sentimentBadge, { backgroundColor: config.color }]}
             >
-              {sentimentTexts[item.sentiment]}
-            </Chip>
+              <Text style={styles.sentimentEmoji}>{config.emoji}</Text>
+              <Text style={styles.sentimentText}>{config.text}</Text>
+            </View>
           </View>
+
+          {/* Original Text */}
           <Text style={styles.entryText} numberOfLines={3}>
             {item.text}
           </Text>
+
           <Divider style={styles.divider} />
+
+          {/* Summary */}
           <View style={styles.summaryContainer}>
-            <Text style={styles.summaryLabel}>📝 Özet</Text>
-            <Text style={styles.summaryText}>{item.summary}</Text>
+            <View style={styles.summaryHeader}>
+              <Surface style={styles.iconContainer}>
+                <Text style={styles.summaryIcon}>📝</Text>
+              </Surface>
+              <Text style={styles.summaryLabel}>Öneri</Text>
+            </View>
+            <Text style={styles.summaryText}>{item.suggestion}</Text>
           </View>
         </Card.Content>
       </Card>
     );
   };
 
-  if (loading)
+  const isSelectionMode = selectedIds.length > 0;
+
+  // Loading State
+  if (loading) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#6200ee" animating />
+          <View style={styles.loadingCircle}>
+            <ActivityIndicator size="large" color="#8B5CF6" animating />
+          </View>
           <Text style={styles.loadingText}>Kayıtlar yükleniyor...</Text>
+          <Text style={styles.loadingSubText}>Lütfen bekleyin</Text>
         </View>
       </SafeAreaView>
     );
+  }
 
-  if (entries.length === 0)
+  // Empty State
+  if (entries.length === 0) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.centerContainer}>
-          <Text style={styles.emptyEmoji}>📝</Text>
+          <View style={styles.emptyCircle}>
+            <Text style={styles.emptyEmoji}>📝</Text>
+          </View>
           <Text style={styles.emptyTitle}>Henüz Kayıt Yok</Text>
           <Text style={styles.emptyText}>
             Ana sayfadan ilk duygusal analizini yap ve kayıtların burada
@@ -175,50 +233,56 @@ const HistoryScreen = () => {
             mode="contained"
             onPress={() => {}}
             style={styles.emptyAction}
-            theme={{ roundness: 12 }}
+            buttonColor="#8B5CF6"
             icon="plus-circle-outline"
+            labelStyle={styles.emptyButtonLabel}
           >
             Yeni Analiz Yap
           </Button>
         </View>
       </SafeAreaView>
     );
-
-  const isSelectionMode = selectedIds.length > 0;
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
+        {/* Header */}
         <View
           style={[styles.header, isSelectionMode && styles.selectionHeader]}
         >
           <View style={styles.headerLeft}>
             {isSelectionMode ? (
-              <View style={styles.selectionLeft}>
+              <View style={styles.selectionInfo}>
                 <IconButton
                   icon="close"
                   size={24}
-                  iconColor="#F44336"
+                  iconColor="#EF4444"
                   onPress={clearSelection}
+                  style={styles.closeIcon}
                 />
-                <Text style={styles.selectionCount}>
-                  {selectedIds.length} seçili
-                </Text>
+                <View>
+                  <Text style={styles.selectionCount}>
+                    {selectedIds.length} Seçili
+                  </Text>
+                  <Text style={styles.selectionSubtext}>
+                    Toplamda {entries.length} kayıt
+                  </Text>
+                </View>
               </View>
             ) : (
               <>
-                <IconButton
-                  icon="history"
-                  size={24}
-                  iconColor="#6200ee"
-                  onPress={() => {}}
-                />
-                <Text style={styles.statsText}>
-                  Toplam {entries.length} kayıt
-                </Text>
+                <Surface style={styles.headerIconContainer}>
+                  <IconButton icon="history" size={24} iconColor="#8B5CF6" />
+                </Surface>
+                <View style={styles.headerTitleContainer}>
+                  <Text style={styles.headerTitle}>Geçmiş</Text>
+                  <Text style={styles.statsText}>{entries.length} kayıt</Text>
+                </View>
               </>
             )}
           </View>
+
           <View style={styles.headerRight}>
             {isSelectionMode ? (
               <>
@@ -226,11 +290,10 @@ const HistoryScreen = () => {
                   mode="contained"
                   onPress={handleDeleteSelected}
                   icon="delete"
-                  buttonColor="#F44336"
-                  textColor="#fff"
+                  buttonColor="#EF4444"
                   compact
                   style={styles.compactButton}
-                  theme={{ roundness: 20 }}
+                  labelStyle={styles.buttonLabel}
                 >
                   Sil
                 </Button>
@@ -238,10 +301,10 @@ const HistoryScreen = () => {
                   mode="text"
                   onPress={clearSelection}
                   icon="close"
-                  textColor="#F44336"
+                  textColor="#6B7280"
                   compact
                   style={styles.compactButton}
-                  theme={{ roundness: 20 }}
+                  labelStyle={styles.buttonLabel}
                 >
                   İptal
                 </Button>
@@ -251,10 +314,10 @@ const HistoryScreen = () => {
                 mode="outlined"
                 onPress={handleClearAll}
                 icon="delete-sweep"
-                textColor="#F44336"
+                textColor="#EF4444"
                 compact
                 style={styles.compactButton}
-                theme={{ roundness: 20 }}
+                labelStyle={styles.buttonLabel}
               >
                 Tümünü Sil
               </Button>
@@ -262,6 +325,7 @@ const HistoryScreen = () => {
           </View>
         </View>
 
+        {/* List */}
         <FlatList
           data={entries}
           renderItem={renderEntry}
@@ -271,7 +335,8 @@ const HistoryScreen = () => {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={['#6200ee']}
+              colors={['#8B5CF6']}
+              tintColor="#8B5CF6"
             />
           }
           showsVerticalScrollIndicator={false}
@@ -282,118 +347,247 @@ const HistoryScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#f8f9fa' },
-  container: { flex: 1, backgroundColor: '#f8f9fa' },
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
+  container: {
+    flex: 1,
+    backgroundColor: '#F9FAFB',
+  },
   centerContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    padding: 24,
+  },
+  loadingCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
   },
   loadingText: {
-    marginTop: 12,
-    color: '#6c757d',
-    fontSize: 16,
-    fontWeight: '500',
+    marginTop: 16,
+    color: '#1F2937',
+    fontSize: 18,
+    fontWeight: '700',
   },
-  emptyEmoji: { fontSize: 64, marginBottom: 16 },
+  loadingSubText: {
+    marginTop: 8,
+    color: '#9CA3AF',
+    fontSize: 14,
+  },
+  emptyCircle: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#F3F4F6',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  emptyEmoji: {
+    fontSize: 56,
+  },
   emptyTitle: {
     fontSize: 24,
     fontWeight: '700',
-    color: '#1a1a1a',
-    marginBottom: 8,
+    color: '#1F2937',
+    marginBottom: 12,
     textAlign: 'center',
   },
   emptyText: {
     fontSize: 16,
     textAlign: 'center',
-    color: '#6c757d',
-    maxWidth: 300,
-    lineHeight: 22,
-    marginBottom: 20,
+    color: '#6B7280',
+    maxWidth: 280,
+    lineHeight: 24,
+    marginBottom: 24,
   },
-  emptyAction: { marginTop: 16 },
+  emptyAction: {
+    marginTop: 8,
+    borderRadius: 12,
+  },
+  emptyButtonLabel: {
+    fontSize: 16,
+    fontWeight: '600',
+    paddingVertical: 4,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
-    borderBottomColor: '#e9ecef',
+    borderBottomColor: '#E5E7EB',
     elevation: 2,
   },
   selectionHeader: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
+    backgroundColor: '#FEF2F2',
+    borderBottomColor: '#FECACA',
   },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', flex: 1 },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  statsText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#6200ee',
-    marginLeft: 8,
-  },
-  selectionLeft: {
+  headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
-  selectionCount: {
-    fontSize: 16,
+  headerIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F3F4F6',
+    marginRight: 12,
+    elevation: 1,
+  },
+  headerTitleContainer: {
+    flex: 1,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#1F2937',
+  },
+  statsText: {
+    fontSize: 13,
+    color: '#8B5CF6',
     fontWeight: '600',
-    color: '#F44336',
-    marginLeft: 8,
+    marginTop: 2,
+  },
+  selectionInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  closeIcon: {
+    margin: 0,
+  },
+  selectionCount: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#EF4444',
+  },
+  selectionSubtext: {
+    fontSize: 12,
+    color: '#9CA3AF',
+    marginTop: 2,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   compactButton: {
-    minWidth: 80,
+    borderRadius: 12,
   },
-  listContent: { padding: 16, paddingBottom: 20 },
+  buttonLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 24,
+  },
   entryCard: {
     marginBottom: 16,
-    elevation: 3,
+    elevation: 2,
     borderRadius: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderLeftWidth: 5,
   },
   selectedCard: {
-    backgroundColor: '#f3e5f5',
-    borderColor: '#6200ee',
-    borderWidth: 1,
+    backgroundColor: '#F3E5F5',
+    borderColor: '#8B5CF6',
+    borderWidth: 2,
+    borderLeftWidth: 5,
   },
-  entryHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  dateContainer: { flexDirection: 'row', alignItems: 'center', flex: 1 },
+  entryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginLeft: 4,
+  },
+  clockIcon: {
+    margin: 0,
+    padding: 0,
+  },
   dateText: {
-    fontSize: 14,
-    color: '#6c757d',
-    marginRight: 8,
+    fontSize: 13,
+    color: '#6B7280',
     fontWeight: '500',
+    marginLeft: -4,
   },
-  chip: { height: 36 },
-  chipText: { color: '#fff', fontWeight: '600', fontSize: 13 },
-  emoji: { fontSize: 16, marginRight: 4 },
+  sentimentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  sentimentEmoji: {
+    fontSize: 16,
+    marginRight: 4,
+  },
+  sentimentText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '600',
+  },
   entryText: {
     fontSize: 15,
-    color: '#1a1a1a',
+    color: '#1F2937',
+    lineHeight: 24,
     marginBottom: 12,
     fontStyle: 'italic',
-    lineHeight: 22,
   },
-  divider: { marginVertical: 12 },
-  summaryContainer: { marginTop: 8 },
+  divider: {
+    backgroundColor: '#E5E7EB',
+    marginVertical: 12,
+  },
+  summaryContainer: {
+    marginTop: 8,
+  },
+  summaryHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  iconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F9FAFB',
+    marginRight: 8,
+    elevation: 0,
+  },
+  summaryIcon: {
+    fontSize: 16,
+  },
   summaryLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#343a40',
-    marginBottom: 4,
+    color: '#374151',
   },
-  summaryText: { fontSize: 14, color: '#495057', lineHeight: 20 },
+  summaryText: {
+    fontSize: 14,
+    color: '#4B5563',
+    lineHeight: 22,
+    paddingLeft: 40,
+  },
 });
 
 export default HistoryScreen;

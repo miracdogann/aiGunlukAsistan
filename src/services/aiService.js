@@ -104,7 +104,7 @@ export const analyzeSentiment = async (text) => {
         suggestion = fallbackSuggestion(sentiment);
       }
     } catch (err) {
-      console.warn("⚠️ AI özet/öneri hatası:", err.message);
+      // console.warn("⚠️ AI özet/öneri hatası:", err.message);
       summary = fallbackSummary(sentiment, text);
       suggestion = fallbackSuggestion(sentiment);
     }
@@ -112,8 +112,8 @@ export const analyzeSentiment = async (text) => {
     console.log("✅ Analiz tamamlandı");
     return { sentiment, summary, suggestion, rawData: sentimentData };
   } catch (error) {
-    console.error("❌ AI Service Error:", error.message);
-    throw new Error(`AI analizi başarısız: ${error.message}`);
+    console.log("❌ AI Service Error:", error.message);
+    throw new Error(`Offline mode lütfen internet bağlantınızı açın!`);
   }
 };
 
